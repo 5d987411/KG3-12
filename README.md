@@ -13,13 +13,13 @@ KG3-12 is a command-line wallet and web interface for Kaspa testnet networks. It
 
 ### Key Features
 
-| Feature | Description |
-|---------|-------------|
-| gRPC Support | Auto-detect local nodes via gRPC |
-| HTTP Support | Public API endpoints |
-| Network Switcher | TN10 / TN12 / Local Node |
-| Sync Status | Real-time sync progress |
-| Web UI | Browser-based wallet interface |
+| Feature          | Description                      |
+|------------------|----------------------------------|
+| gRPC Support     | Auto-detect local nodes via gRPC |
+| HTTP Support     | Public API endpoints             |
+| Network Switcher | TN10 / TN12 / Local Node         |
+| Sync Status      | Real-time sync progress          |
+| Web UI           | Browser-based wallet interface   |
 
 ## Technical Specifications
 
@@ -45,11 +45,11 @@ KG3-12 is a command-line wallet and web interface for Kaspa testnet networks. It
 
 ### Ports
 
-| Service | Port |
-|---------|------|
+| Service     | Port  |
+|-------------|-------|
 | gRPC (TN12) | 16210 |
-| wRPC JSON | 18210 |
-| P2P | 16311 |
+| wRPC JSON   | 18210 |
+| P2P         | 16311 |
 
 ### Consensus Parameters (TN12)
 
@@ -109,15 +109,15 @@ node server.cjs
 ┌─────────────────────────────────────────────┐
 │              KG3-12 (CLI + Web UI)          │
 ├─────────────────────────────────────────────┤
-│                                              │
-│  ┌──────────┐    ┌──────────┐    ┌───────┐ │
-│  │ HTTP Client│    │gRPC Client│   │Wallet │ │
-│  └────┬─────┘    └────┬─────┘    └───┬───┘ │
-│       │                │               │      │
-│       ▼                ▼               ▼      │
+│                                             │
+│  ┌──────────┐    ┌──────────┐    ┌───────┐  │
+│  │HTTP Client│   │gRPC Client│   │Wallet │  │
+│  └────┬─────┘    └────┬─────┘    └───┬───┘  │
+│       │                │               │    │
+│       ▼                ▼               ▼    │
 │  ┌─────────────────────────────────────────┐│
 │  │          Kaspa Network                  ││
-│  │  (Public API / Local Node)           ││
+│  │  (Public API / Local Node)              ││
 │  └─────────────────────────────────────────┘│
 └─────────────────────────────────────────────┘
 ```
