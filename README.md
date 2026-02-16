@@ -1,30 +1,67 @@
-# Kaspa Graffiti Wallet
+# KG3-12 - KaspaGraffiti CLI
 
-A Rust-based Kaspa wallet for testnet-12 with CLI and web UI interfaces.
+A Rust-based Kaspa wallet for testnet-10 and testnet-12 with CLI and web UI interfaces.
 
-## What This Wallet Does
+## Project Summary
 
-### ✅ Core Features
-- **Generate wallets** - Create new private keys and addresses
-- **Load wallets** - Import wallets from private keys (hex format)
-- **HD Wallets** - BIP32/BIP44 hierarchical deterministic wallets
-- **Address Derivation** - Derive addresses from HD seeds
-- **Check Balance** - Query address balance from Kaspa network
-- **Get UTXOs** - List unspent transaction outputs
-- **Transfer KAS** - Send Kaspa tokens to any address
+KG3-12 is a command-line wallet and web interface for Kaspa testnet networks. It supports:
+- **Wallet generation** - Create new private keys and addresses
+- **HD Wallets** - BIP32/BIP44 hierarchical deterministic wallets  
+- **Balance checking** - Query UTXOs from local or public nodes
+- **Transfers** - Send KAS with Schnorr signatures
+- **Multi-network** - Testnet-10, Testnet-12, and local nodes
 
-### 🔐 Security
-- Private keys stored locally (never sent to servers)
-- Schnorr signatures (BIP-340 compliant)
-- Local transaction signing
+### Key Features
 
-### 🌐 Network Support
-- Testnet-10 (kaspatest:)
-- Uses Kaspa public RPC API
+| Feature | Description |
+|---------|-------------|
+| gRPC Support | Auto-detect local nodes via gRPC |
+| HTTP Support | Public API endpoints |
+| Network Switcher | TN10 / TN12 / Local Node |
+| Sync Status | Real-time sync progress |
+| Web UI | Browser-based wallet interface |
+
+## Technical Specifications
+
+### Network Configuration
+
+| Network | RPC URL | Protocol | Address Prefix |
+|---------|---------|----------|---------------|
+| Testnet-10 | https://api-tn10.kaspa.org | HTTP | kaspatest: |
+| Testnet-12 | https://api-tn12.kaspa.org | HTTP | kaspatest: |
+| Local Node | localhost:16210 | gRPC | kaspatest: |
+
+### Local Node Setup
+
+```bash
+# Start local testnet-12 node
+/Users/4dsto/kaspa-node/rusty-kaspa/target/release/kaspad \
+  --testnet --netsuffix=12 --utxoindex
+
+# Check sync status
+/Users/4dsto/kaspa-node/rusty-kaspa/target/release/rothschild \
+  --private-key <key> -t 0
+```
+
+### Ports
+
+| Service | Port |
+|---------|------|
+| gRPC (TN12) | 16210 |
+| wRPC JSON | 18210 |
+| P2P | 16311 |
+
+### Consensus Parameters (TN12)
+
+- **Covenants**: Enabled
+- **Crescendo**: Enabled
+- **Max Signature Script**: 300,000 bytes
+- **Block Mass**: 500K compute, 500K storage, 1M transient
 
 ## Quick Start
 
 ### CLI
+
 ```bash
 # Build
 cargo build --release
@@ -33,14 +70,14 @@ cargo build --release
 ./target/release/kaspa-graffiti-cli generate
 
 # Check balance
-./target/release/kaspa-graffiti-cli balance kaspatest:qq...
+./target/release/kaspa-graffiti-cli balance <address>
 
-# Transfer KAS
-./target/release/kaspa-graffiti-cli transfer <private_key> <recipient> <amount>
-./target/release/kaspa-graffiti-cli transfer <key> kaspatest:qq... 1.0
+# Transfer
+./target/release/kaspa-graffiti-cli transfer <key> <recipient> <amount>
 ```
 
 ### Web UI
+
 ```bash
 cd src-ui
 node server.cjs
@@ -55,34 +92,43 @@ node server.cjs
 | `load <key>` | Load wallet from private key |
 | `hd-generate` | Generate HD wallet (seed) |
 | `hd-load <seed>` | Load HD wallet |
-| `derive-address <seed> <index>` | Derive single address |
-| `derive-many <key> <count>` | Derive multiple addresses |
 | `balance <address>` | Check balance |
 | `utxos <address>` | Get UTXOs |
-| `transfer <key> <addr> <amt>` | Send KAS (amt in KAS) |
+| `transfer <key> <addr> <amt>` | Send KAS |
 
 ## Web UI Features
 
-- **Multiple wallets** - Load and switch between wallets
-- **Wallet list** - Shows all loaded wallets with balances
-- **One-click switch** - Click wallet to use for sending
-- **TKAS display** - Shows TKAS for testnet addresses
-- **Auto-refresh** - Balance updates after transfers
-- **HD wallet** - Generate and derive addresses
+- **Network Switcher**: TN10 / TN12 / Local Node buttons
+- **Node Sync**: Real-time sync progress display
+- **Test Connection**: Verify network connectivity
+- **Multi-wallet**: Load and switch between wallets
 
-## Project Structure
+## Architecture
 
 ```
-kaspa-graffiti/
-├── src/
-│   ├── commands.rs      # CLI commands
-│   ├── wallet/          # Wallet, signing, HD
-│   ├── rpc/            # Kaspa RPC client
-│   └── graffiti/        # Graffiti message (disabled)
-├── src-ui/             # Web interface
-├── src-tauri/          # Tauri GUI (WIP)
-└── tests/
+┌─────────────────────────────────────────────┐
+│              KG3-12 (CLI + Web UI)          │
+├─────────────────────────────────────────────┤
+│                                              │
+│  ┌──────────┐    ┌──────────┐    ┌───────┐ │
+│  │ HTTP Client│    │gRPC Client│   │Wallet │ │
+│  └────┬─────┘    └────┬─────┘    └───┬───┘ │
+│       │                │               │      │
+│       ▼                ▼               ▼      │
+│  ┌─────────────────────────────────────────┐│
+│  │          Kaspa Network                  ││
+│  │  (Public API / Local Node)           ││
+│  └─────────────────────────────────────────┘│
+└─────────────────────────────────────────────┘
 ```
+
+## Dependencies
+
+- **kaspa-addresses** - Address encoding
+- **kaspa-consensus-core** - Transaction signing
+- **kaspa-txscript** - Script utilities
+- **kaspa-grpc-client** - gRPC connectivity
+- **secp256k1** - Schnorr signatures
 
 ## Build
 
@@ -90,28 +136,27 @@ kaspa-graffiti/
 # CLI only
 cargo build --release
 
-# With Tauri
-cd src-tauri
-cargo build --release
+# Binary location
+./target/release/kaspa-graffiti-cli
 ```
 
-## Status
+## Current Status
 
 | Feature | Status |
 |---------|--------|
 | Wallet generation | ✅ Working |
 | HD wallets | ✅ Working |
-| Balance checking | ✅ Working |
+| Balance (TN10/TN12) | ✅ Working |
+| Balance (Local) | ✅ Working |
 | KAS transfers | ✅ Working |
-| Multi-UTXO transactions | ✅ Working |
-| Graffiti messages | ⚠️ Disabled |
+| Web UI | ✅ Working |
+| gRPC auto-detect | ✅ Working |
 
-## Technical Details
+## Documentation
 
-- **Signature**: BIP-340 Schnorr signatures
-- **Transaction**: Version 0 (Kaspa requirement)
-- **Fee**: Dynamic based on transaction mass
-- **Min fee**: ~2000-7000 sompi depending on UTXOs
+- [specs.md](./specs.md) - Full TN12 technical specs
+- [CHANGES.md](./CHANGES.md) - Change history
+- [debug_session.md](./debug_session.md) - Session notes
 
 ## License
 
